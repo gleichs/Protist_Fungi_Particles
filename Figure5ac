@@ -7,6 +7,7 @@ library(tidyverse)
 library(ggplot2)
 library(reshape2)
 library(stringr)
+library(ggpubr)
 
 # Load in taxonomic IDs (dfEuk), functional IDs (dfEgg), and transcript abundances (dfSalmon)
 dfEukProfun <- read.delim("./Data/eukulele_profun_eukprot.out",header=TRUE,sep="\t")
@@ -117,28 +118,28 @@ colrs <- c("Foraminifera"="#BFA88C","Haptophyte"="darkcyan","Other Stramenopiles
 
 
 # Plot function
-taxPltFxn <- function(df,exp,title){
+taxPltFxnNets <- function(df,exp,title){
   subs <- subset(df, Exp==paste(exp))
-  subs <- subset(subs,grepl("Rot",subs$Sample))
-  subs$Sample <- ifelse(subs$Sample=="RotT0","Net Trap T0", subs$Sample)
-  subs$Sample <- ifelse(subs$Sample=="RotT3","Net Trap T3", subs$Sample)
-  subs$Sample <- ifelse(subs$Sample=="RotT6","Net Trap T6", subs$Sample)
-  subs$Sample <- factor(subs$Sample,levels=c("Net Trap T0","Net Trap T3","Net Trap T6"))
-  out <- ggplot(subs,aes(x=Sample,y=s,fill=tax))+
-    geom_col(color = 'gray20', position = 'fill')+
-    scale_fill_manual(name="Taxonomic Group",values=c(colrs))+
-    theme_classic(base_size = 16)+
-    xlab("")+
-    ylab("Relative Transcript Abundance")+
-    theme(axis.text.x = element_text(angle = 45, hjust =1))+
-    ggtitle(title)
+  subsWater <- subset(subs,grepl("Water",subs$Sample))
+  subsWater <- subsWater %>% group_by(tax) %>% summarize(s=mean(s))
+  subsWater$Sample <- "Water Column"
+  subs <- subset(subs,!grepl("Water",subs$Sample))
+  subs$variable <- NULL
+  subs$Exp <- NULL
+  subs$Sample <- ifelse(subs$Sample=="RotT0",0,subs$Sample)
+  subs$Sample <- ifelse(subs$Sample=="RotT3",3,subs$Sample)
+  subs$Sample <- ifelse(subs$Sample=="RotT6",6,subs$Sample)
+  
+  rotPlot <- ggplot(subs,aes(x=as.numeric(Sample),y=s,fill=tax))+geom_area(alpha = 0.6, position = 'fill')+geom_col(width = 1.5, color = 'gray20', position = 'fill')+scale_fill_manual(name="Taxonomic Group",values=c(colrs))+theme_classic(base_size = 16)+xlab("")+ylab("Relative Transcript Abundance")+theme(axis.text.x = element_text(angle = 45, hjust =1))+scale_x_continuous(breaks=c(0,3,6),labels=c("Net Trap T0","Net Trap T3","Net Trap T6"))
+  
+  out <- rotPlot+plot_layout(guides = "collect",nrow=1)+plot_annotation(title=paste(title))
   return(out)}
 
 # Execute plot function
-pExp1 <- taxPltFxn(dfTaxMelt,"Exp1"," Experiment #1\n 2021")
-pExp2 <- taxPltFxn(dfTaxMelt,"Exp2"," Experiment #2\n 2021")
-pExp3 <- taxPltFxn(dfTaxMelt,"Exp3"," Experiment #3\n 2022")
+pExp1 <- taxPltFxnNets(dfTaxMelt,"Exp1"," Experiment #1\n 2021")
+pExp2 <- taxPltFxnNets(dfTaxMelt,"Exp2"," Experiment #2\n 2021")
+pExp3 <- taxPltFxnNets(dfTaxMelt,"Exp3"," Experiment #3\n 2022")
 
 # Make combined ggarrange plot
 ggarrange(pExp1,pExp2,pExp3,common.legend = TRUE,nrow=1,ncol=3,labels=c("a","b","c"),font.label = list(size=12,color="black",face="plain"))
-ggsave("../../Figure5ac.png",width=11,height=6)
+ggsave("../../Figure5ac.png",width=13,height=7)
