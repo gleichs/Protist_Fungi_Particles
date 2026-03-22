@@ -140,13 +140,16 @@ dfMelt <- melt(dfAll,id.vars=c("Tax","type"))
 dfMelt$Sample <- ifelse(grepl("RotT0",dfMelt$variable),"Net Trap T0",NA)
 dfMelt$Sample <- ifelse(grepl("RotT3",dfMelt$variable),"Net Trap T3",dfMelt$Sample)
 dfMelt$Sample <- ifelse(grepl("RotT6",dfMelt$variable),"Net Trap T6",dfMelt$Sample)
-dfMelt$Sample <- ifelse(grepl("Water",dfMelt$variable),"Water Column",dfMelt$Sample)
+dfMelt$Sample <- ifelse(grepl("WaterColumn1",dfMelt$variable),"WaterColum1",dfMelt$Sample)
+dfMelt$Sample <- ifelse(grepl("WaterColumn2",dfMelt$variable),"WaterColum2",dfMelt$Sample)
 dfMelt$Exp <- ifelse(grepl("Exp1",dfMelt$variable),"Experiment #1",NA)
 dfMelt$Exp <- ifelse(grepl("Exp2",dfMelt$variable),"Experiment #2",dfMelt$Exp)
 dfMelt$Exp <- ifelse(grepl("Exp3",dfMelt$variable),"Experiment #3",dfMelt$Exp)
 
 # Add reads across all sample types
-dfMeltSum <- dfMelt %>% group_by(Tax,Sample,,Exp,type) %>% summarize(s=sum(value))
+dfMeltSum <- dfMelt %>% group_by(Tax,Sample,Exp,type) %>% summarize(s=sum(value))
+dfMeltSum$Sample <- ifelse(grepl("Water",dfMeltSum$Sample),"Water Column",dfMeltSum$Sample)
+dfMeltSum <- dfMeltSum %>% group_by(Tax,Sample,Exp,type) %>% summarize(s=mean(s))
 dfMeltSum$Tax <- factor(dfMeltSum$Tax,levels=c("Fungi","Metazoa","Other Eukaryote")) 
 
 # Step 1: Calculate percentages for each Sample-type-Exp combo
@@ -172,13 +175,13 @@ new$ypos <- new$ypos-1
 # Step 3: Plot fxn
 plot_fxn <- function(samp,db,main){
   new %>% filter(Sample==samp & type==db) %>%
-  ggplot(aes_string(x="1",y="avg_percent",fill="Tax"))+
-  geom_bar(width = 1, stat = "identity",color="black") +
-  coord_polar(theta = "y") +
-  theme_void() +
-  labs(title = main)+
-  scale_fill_manual(name="Taxonomy",values=c("grey85","grey30","white"),breaks=c("Fungi","Metazoa","Other Eukaryote"))+
-  geom_text(data=subset(new,Tax=="Other Eukaryote" & Sample==samp & type==db),aes(y = 100, label = label), color = "black",vjust=5.2)
+    ggplot(aes_string(x="1",y="avg_percent",fill="Tax"))+
+    geom_bar(width = 1, stat = "identity",color="black") +
+    coord_polar(theta = "y") +
+    theme_void() +
+    labs(title = main)+
+    scale_fill_manual(name="Taxonomy",values=c("grey85","grey30","white"),breaks=c("Fungi","Metazoa","Other Eukaryote"))+
+    geom_text(data=subset(new,Tax=="Other Eukaryote" & Sample==samp & type==db),aes(y = 100, label = label), color = "black",vjust=5.2)
 }
 
 # Generate pie charts
@@ -193,4 +196,4 @@ p_t6 <- plot_fxn("Net Trap T6","ProFun","Net Trap T6\nProFun")
 
 # Combine plots
 m_wc + m_t0 +m_t3+m_t6+p_wc+p_t0+p_t3+p_t6+plot_layout(ncol=4,nrow=2,guides="collect")+plot_annotation(tag_levels="a")
-ggsave("../../Figure2.png",width=12,height=4)
+
