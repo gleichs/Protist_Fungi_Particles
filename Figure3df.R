@@ -92,8 +92,11 @@ dfTaxMelt <- melt(dfTax,id.vars="tax")
 cols <- colsplit(dfTaxMelt$variable,"_",c("Sample","Exp"))
 dfTaxMelt <- cbind(dfTaxMelt,cols)
 dfTaxMelt$variable <- NULL
-dfTaxMelt$Sample <- ifelse(grepl("Water",dfTaxMelt$Sample),"Water Column",dfTaxMelt$Sample)
 dfTaxMelt <- dfTaxMelt %>% group_by(Sample,Exp,tax)%>% summarize(s=sum(value))
+
+# Average WC together
+dfTaxMelt$Sample <- ifelse(grepl("Water",dfTaxMelt$Sample),"Water Column",dfTaxMelt$Sample)
+dfTaxMelt <- dfTaxMelt %>% group_by(Sample,Exp,tax)%>% summarize(s=mean(s))
 
 # Colors for taxonomy
 colrs <- randomcoloR::distinctColorPalette(length(unique(taxz$c)))
@@ -123,4 +126,4 @@ pExp3 <- taxPltFxn(dfTaxMelt,"Exp3"," Experiment #3\n 2022")
 
 # Make combined ggarrange plot
 ggarrange(pExp1,pExp2,pExp3,common.legend = TRUE,nrow=1,ncol=3,labels=c("d","e","f"),font.label = list(size=12,color="black",face="plain"))
-ggsave("../../Figure3df.png",width=13,height=7)
+# ggsave("../../Figure3df.png",width=13,height=7)
