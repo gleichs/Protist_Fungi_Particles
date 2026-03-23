@@ -110,8 +110,11 @@ dfTaxMelt <- melt(dfTax,id.vars="tax")
 cols <- colsplit(dfTaxMelt$variable,"_",c("Sample","Exp"))
 dfTaxMelt <- cbind(dfTaxMelt,cols)
 dfTaxMelt$variable <- NULL
-dfTaxMelt$Sample <- ifelse(grepl("Water",dfTaxMelt$Sample),"Water Column",dfTaxMelt$Sample)
 dfTaxMelt <- dfTaxMelt %>% group_by(Sample,Exp,tax)%>% summarize(s=sum(value))
+
+# Average WC together
+dfTaxMelt$Sample <- ifelse(grepl("Water",dfTaxMelt$Sample),"Water Column",dfTaxMelt$Sample)
+dfTaxMelt <- dfTaxMelt %>% group_by(Sample,Exp,tax)%>% summarize(s=mean(s))
 
 # Colors for taxonomy
 colrs <- c("Foraminifera"="#BFA88C","Haptophyte"="darkcyan","Other Stramenopiles"="#D895DD" ,"Chlorophyte"="#72DBBD" ,"Amoebozoa"="#DBE7D4","Dinoflagellate"="#D2E04E","Discoba"="#72E16B","Diatom"="#D2608C","Other Alveolate"="#84c3D7","Other Eukaryote"="grey","Cercozoa"="#C6E198","Fungi"="red3","Ciliate"="#8169D7","Pelagophyte"="#DB57D1","Other Archaeplastida"="dodgerblue","MAST"="khaki1","Metazoa"="#7D98D5","Other Rhizaria"="olivedrab","Labyrinthulomycete"="orange")
@@ -143,3 +146,4 @@ pExp3 <- taxPltFxnNets(dfTaxMelt,"Exp3"," Experiment #3\n 2022")
 # Make combined ggarrange plot
 ggarrange(pExp1,pExp2,pExp3,common.legend = TRUE,nrow=1,ncol=3,labels=c("a","b","c"),font.label = list(size=12,color="black",face="plain"))
 ggsave("../../Figure5ac.png",width=13,height=7)
+
