@@ -144,33 +144,6 @@ pExp3 <- taxPltFxn(dfTaxMelt,"Exp3"," Experiment #3\n 2022")
 
 # Make combined ggarrange plot
 ggarrange(pExp1,pExp2,pExp3,common.legend = TRUE,nrow=1,ncol=3,labels=c("a","b","c"),font.label = list(size=12,color="black",face="plain"))
-ggsave("../../Figure3a!!.png",width=11,height=6)
+ggsave("../../Figure3ac.png",width=11,height=6)
 
-
-# Plot function
-taxPltFxnNets <- function(df,exp,title){
-  subs <- subset(df, Exp==paste(exp))
-  subsWater <- subset(subs,grepl("Water",subs$Sample))
-  subsWater <- subsWater %>% group_by(tax) %>% summarize(s=mean(s))
-  subsWater$Sample <- "Water Column"
-  subs <- subset(subs,!grepl("Water",subs$Sample))
-  subs$variable <- NULL
-  subs$Exp <- NULL
-  subs$Sample <- ifelse(subs$Sample=="RotT0",0,subs$Sample)
-  subs$Sample <- ifelse(subs$Sample=="RotT3",3,subs$Sample)
-  subs$Sample <- ifelse(subs$Sample=="RotT6",6,subs$Sample)
-  
-  rotPlot <- ggplot(subs,aes(x=as.numeric(Sample),y=s,fill=tax))+geom_area(alpha = 0.6, position = 'fill')+geom_col(width = 1.5, color = 'gray20', position = 'fill')+scale_fill_manual(name="Taxonomic Group",values=c(colrs))+theme_classic(base_size = 16)+xlab("")+ylab("Relative Transcript Abundance")+theme(axis.text.x = element_text(angle = 45, hjust =1))+scale_x_continuous(breaks=c(0,3,6),labels=c("Net Trap T0","Net Trap T3","Net Trap T6"))
-  
-  out <- rotPlot+plot_layout(guides = "collect",nrow=1)+plot_annotation(title=paste(title))
-  return(out)}
-
-# Execute plot function
-pExp1 <- taxPltFxnNets(dfTaxMelt,"Exp1"," Experiment #1\n 2021")
-pExp2 <- taxPltFxnNets(dfTaxMelt,"Exp2"," Experiment #2\n 2021")
-pExp3 <- taxPltFxnNets(dfTaxMelt,"Exp3"," Experiment #3\n 2022")
-
-# Make combined ggarrange plot
-ggarrange(pExp1,pExp2,pExp3,common.legend = TRUE,nrow=1,ncol=3,labels=c("a","b","c"),font.label = list(size=12,color="black",face="plain"))
-ggsave("../../Figure3ac!!.png",width=13,height=7)
 
