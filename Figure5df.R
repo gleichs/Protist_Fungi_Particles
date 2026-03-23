@@ -92,8 +92,12 @@ dfTaxMelt <- melt(dfTax,id.vars="tax")
 cols <- colsplit(dfTaxMelt$variable,"_",c("Sample","Exp"))
 dfTaxMelt <- cbind(dfTaxMelt,cols)
 dfTaxMelt$variable <- NULL
-dfTaxMelt$Sample <- ifelse(grepl("Water",dfTaxMelt$Sample),"Water Column",dfTaxMelt$Sample)
 dfTaxMelt <- dfTaxMelt %>% group_by(Sample,Exp,tax)%>% summarize(s=sum(value))
+
+# Average WC together
+dfTaxMelt$Sample <- ifelse(grepl("Water",dfTaxMelt$Sample),"Water Column",dfTaxMelt$Sample)
+dfTaxMelt <- dfTaxMelt %>% group_by(Sample,Exp,tax)%>% summarize(s=mean(s))
+
 
 # Colors for taxonomy
 colrs <- randomcoloR::distinctColorPalette(length(unique(taxz$c)))
